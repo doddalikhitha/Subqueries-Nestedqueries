@@ -1,0 +1,35 @@
+USE LibraryDB;
+
+-- 1. Scalar subquery: Find book with max copies
+SELECT title, available_copies
+FROM Books
+WHERE available_copies = (SELECT MAX(available_copies) FROM Books);
+
+-- 2. Subquery with IN: Members who borrowed books
+SELECT name, email
+FROM Members
+WHERE member_id IN (SELECT member_id FROM Loans);
+
+-- 3. Subquery with NOT IN: Members who never borrowed books
+SELECT name
+FROM Members
+WHERE member_id NOT IN (SELECT member_id FROM Loans);
+
+-- 4. Correlated subquery: Members with more than 1 loan
+SELECT m.name, m.email
+FROM Members m
+WHERE (SELECT COUNT(*) FROM Loans l WHERE l.member_id = m.member_id) > 1;
+
+-- 5. EXISTS: Staff who issued at least one book
+SELECT s.name, s.role
+FROM Staff s
+WHERE EXISTS (SELECT 1 FROM Loans l WHERE l.staff_id = s.staff_id);
+
+-- 6. Derived table (subquery in FROM): Count loans by member
+SELECT member_id, total_loans
+FROM (
+    SELECT member_id, COUNT(*) AS total_loans
+    FROM Loans
+    GROUP BY member_id
+) AS loan_summary
+WHERE total_loans > 1;
